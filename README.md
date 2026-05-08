@@ -1,73 +1,198 @@
-# **🚀 “Code with AI” 海选赛：5G 信号可视化看板挑战**
+# 5G 信号可视化看板
 
-## **一、 比赛背景**
+基于 **Streamlit + pandas + pydeck** 的本地 Web 看板，用于展示与筛选 5G 路测模拟数据（经纬度、小区、频段、RSRP、SINR、终端类型、下行速率等），适用于「Code with AI」类赛事或教学演示。
 
-**“还在头疼繁琐的代码逻辑？还在为写详设文档发愁？快来试试AI Coding Agent！”**
+---
 
-为了在商用交付中全面推广 AI Coding Agent（智能编程助手），提升部门整体研发效能，我们特别策划了本次“Code with AI”挑战赛！本次海选赛不以考察复杂的底层算法为目的，而是希望鼓励大家跳出传统的代码编写模式，体验如何像“产品经理”一样用自然语言指挥 AI 帮你干活。通过本活动，希望大家能快速建立对 AI 辅助编程的认知，将精力从繁复的代码编写和调试中解放出来，聚焦于核心业务逻辑与架构设计。
+## 项目做什么
 
-## **二、 赛题详情**
+| 模块 | 说明 |
+|------|------|
+| **数据加载** | 使用 pandas 读取 `data/signal_samples.csv`，启动时缓存加载。 |
+| **二维地图** | pydeck `ScatterplotLayer`，按 **RSRP (dBm)** 着色：优于 -90 偏绿，劣于 -110 偏红，中间为黄—橙渐变。 |
+| **三维视图** | pydeck `ColumnLayer`，柱高与 **Download_Mbps** 成正比，颜色仍反映 RSRP。 |
+| **侧边栏筛选** | 多选 **Band**、**RSRP** 范围滑块；筛选后地图与下方图表同步更新。 |
+| **统计图表** | 各频段 **唯一 CellID 数量**柱状图；**终端类型**样本数柱状图。 |
+| **可测试逻辑** | `signal_utils.py` 封装加载、筛选、配色等，配套 `pytest` 单元测试。 |
 
-本次挑战中，你需要利用 AI 工具（如 Cursor, GitHub Copilot, 通义灵码等）和纯 Python 框架（推荐 Streamlit），将一段枯燥的 5G 路测数据，极速转化为一个高大上的交互式 Web 看板。
+---
 
-### **1\. 输入输出要求**
+## 目录结构（建议）
 
-* **输入数据**：主办方在仓库的 data/ 目录下提供了一份 signal\_samples.csv 标准 5G 模拟数据集（包含经纬度、小区ID、频段 Band、信号强度 RSRP 和 信噪比 SINR 等字段）。  
-* **输出成果**：一个可通过浏览器访问的本地 Web 数据可视化看板应用。
+```
+├── app.py                 # Streamlit 入口
+├── signal_utils.py        # 数据处理与配色（便于单测）
+├── requirements.txt       # Python 依赖
+├── data/
+│   └── signal_samples.csv # 赛题提供的路测样例数据
+├── tests/
+│   └── test_signal_utils.py
+├── AI_PROMPTS.md          # AI Agent 交互日志（参赛时按主办方要求填写）
+└── README.md              # 本文件
+```
 
-### **2\. 任务清单 (Challenge Tasks)**
+---
 
-请打开你的 AI 工具对话框，开始向它下达指令，逐一攻克以下关卡：
+## 环境要求
 
-**🟢 基础关卡（必做，完赛基准线）**
+- Python **3.10+**（推荐 **3.12**）
+- 可访问公网以下载 pip 包（或使用国内镜像源）
 
-* **数据加载**：让 AI 修改代码，使用 pandas 库读取提供的 CSV 数据。  
-* **信号热力/散点地图**：让 AI 在网页主体区域渲染一张交互地图（推荐 st.map 或 pydeck），并将数据中的经纬度点打在地图上。  
-  * *核心要求：地图上的点需根据信号强度 (RSRP\_dBm) 变色（如：大于 \-90dBm 为绿色，小于 \-110dBm 为红色）。*  
-* **数据概览图表**：在地图下方，让 AI 生成一个柱状图或饼图，统计当前数据中“各频段的基站数量”或“不同类型终端的占比”。
+---
 
-**🟡 进阶关卡（加分项，展示你对 AI 的驾驭力）**
+## 安装与运行
 
-* **侧边栏联动筛选**：在网页左侧生成侧边栏，包含筛选器（如下拉菜单筛选频段、滑动条筛选 RSRP 范围）。拖动筛选器时，右侧地图和图表必须**实时更新**。  
-* **极客视觉体验**：要求 AI 渲染 3D 地图，让信号点以 3D 柱状图形式“站起来”，高度随下载速率变化。  
-* **工程化素养**：让 AI 为核心代码生成规范注释，并补全一份单元测试。
+```bash
+# 进入项目根目录后
+python -m pip install -r requirements.txt
 
-### **3\. 提交与验收标准**
+# Windows 若安装了多个 Python，可用启动器指定版本，例如：
+# py -3.12 -m pip install -r requirements.txt
 
-为了实现客观、极客的进度排序机制，本次比赛采用 **Git Tag (标签)** 进行关卡登记。
+streamlit run app.py
+```
 
-**📌 进度打卡方式：**
-1. **基础关卡完成**：提交代码并执行 `git tag basic-done`，随后 `git push origin basic-done`。
-2. **进阶关卡完成**：提交代码并执行 `git tag advanced-done`，随后 `git push origin advanced-done`。
-*(评委将严格以对应 Tag 被推送到代码仓服务器的时间戳作为最终的完赛时间)*
+浏览器打开终端提示的地址（一般为 **http://localhost:8501**）。
 
-请各小组将最终成果提交至一个 **GitHub / Gitlab 仓库**，并确保必须包含以下 **4 项“硬核交付物”**（缺一不可）：
+---
 
-1. **📂 源代码**：能一键跑通的 Python 脚本及其依赖文件（requirements.txt）。  
-2. **📄 项目说明文档**：让 AI 帮你们重写一份最终版的 README.md，介绍看板功能和运行方法。  
-3. **📸 运行截图**：提供 2-3 张 Web 应用运行时的截图，展示地图和侧边栏交互。  
-4. **🤖 Agent 交互日志（核心验收项）**：**必须提交 AI\_PROMPTS.md 文件或附件！** 请直接导出并提交你所用的 AI Coding Agent (如 Claude Code、OpenCode 等) 的真实交互记录。评委将借此评估代码构建过程的真实度以及你们是如何引导 AI 解决问题的。
+## 运行单元测试
 
-## **三、 赛制说明**
+```bash
+python -m pytest tests -q
+```
 
-- **活动周期**：
-  - 海选赛：报名时间：4月30日 ~ 5月8日(中午12:00 截止)；比赛时间：5月8日 ~ 5月15日(晚 23:59 截止)。
-  - 挑战赛：预计6-7月开赛；
-- **组队形式**：自由结对，**3 人一组**。
-- **赛事奖励**：
-  - 本次海选赛前 30 组成功提交合格作品（通过**基础关卡**验收标准）的小组，将获得 **每组 300 元** 的 AI Coding Plan 专项经费（奖池发完即止）。
-  - 本次海选赛前16组成功提交合格作品（通过**进阶关卡**验收标准）的小组，将获得直通**挑战赛决赛阶段**的资格。
+---
 
-## **四、 ⚡️ 小白 5 分钟速成指南**
+## 数据字段说明
 
-致第一次使用AI Agent的极客们：别慌！你不需要写 HTML 和 CSS。跟着以下步骤，体验AI Agent的魔法：
+`signal_samples.csv` 主要列：
 
-1. **找 AI**：找一个趁手(免费)的AI Coding Agent工具，当前Gemini CLI、Cursor、GitHub Copilot等工具都有免费额度。
+- `Latitude` / `Longitude`：采样点坐标  
+- `CellID`：小区标识  
+- `Band`：频段（如 n28、n41、n78）  
+- `RSRP_dBm`：参考信号接收功率  
+- `SINR_dB`：信噪比  
+- `TerminalType`：终端类型（如 Smartphone、CPE、IoT）  
+- `Download_Mbps`：下行速率（用于三维柱高）
 
-2. **念咒语**：打开 AI 交互窗口，**不要自己敲代码**，直接输入类似这样的话：
+---
 
-   > *"请使用 Streamlit 写一个看板，帮我读取当前目录下的 `data/signal_samples.csv`，在网页上加个大标题，然后用 st.map() 把数据里的纬度(Latitude)和经度(Longitude)画在地图上。"*
+## Git 提交与赛题打卡（可选）
 
-3. **看结果**：AI 生成代码并 Apply 后，在终端运行 `streamlit run 你的文件名.py`。你的浏览器会自动打开一个本地网页，见证奇迹！
+若仓库为比赛用 Git 远程仓，完成度可按主办方要求打 Tag，例如：
 
-4. **不断迭代**：继续对着 AI 提出修改意见，比如 *"帮我修一下运行错误"*，或者 *"在左边加一个滑动条，只显示筛选后的数据..."*。
+```bash
+git add .
+git commit -m "完成基础/进阶功能说明"
+git tag basic-done      # 基础关卡
+# git tag advanced-done # 进阶关卡
+git push origin main --tags
+```
+
+具体以当前届比赛 README 为准。
+
+---
+
+## 许可证与致谢
+
+数据与赛题背景由活动主办方提供；本看板实现为示例工程，可按队伍需要修改署名与说明。
+# 5G 信号可视化看板
+
+基于 **Streamlit + pandas + pydeck** 的本地 Web 看板，用于展示与筛选 5G 路测模拟数据（经纬度、小区、频段、RSRP、SINR、终端类型、下行速率等），适用于「Code with AI」类赛事或教学演示。
+
+---
+
+## 项目做什么
+
+| 模块 | 说明 |
+|------|------|
+| **数据加载** | 使用 pandas 读取 `data/signal_samples.csv`，启动时缓存加载。 |
+| **二维地图** | pydeck `ScatterplotLayer`，按 **RSRP (dBm)** 着色：优于 -90 偏绿，劣于 -110 偏红，中间为黄—橙渐变。 |
+| **三维视图** | pydeck `ColumnLayer`，柱高与 **Download_Mbps** 成正比，颜色仍反映 RSRP。 |
+| **侧边栏筛选** | 多选 **Band**、**RSRP** 范围滑块；筛选后地图与下方图表同步更新。 |
+| **统计图表** | 各频段 **唯一 CellID 数量**柱状图；**终端类型**样本数柱状图。 |
+| **可测试逻辑** | `signal_utils.py` 封装加载、筛选、配色等，配套 `pytest` 单元测试。 |
+
+---
+
+## 目录结构（建议）
+
+```
+├── app.py                 # Streamlit 入口
+├── signal_utils.py        # 数据处理与配色（便于单测）
+├── requirements.txt       # Python 依赖
+├── data/
+│   └── signal_samples.csv # 赛题提供的路测样例数据
+├── tests/
+│   └── test_signal_utils.py
+├── AI_PROMPTS.md          # AI Agent 交互日志（参赛时按主办方要求填写）
+└── README.md              # 本文件
+```
+
+---
+
+## 环境要求
+
+- Python **3.10+**（推荐 **3.12**）
+- 可访问公网以下载 pip 包（或使用国内镜像源）
+
+---
+
+## 安装与运行
+
+```bash
+# 进入项目根目录后
+python -m pip install -r requirements.txt
+
+# Windows 若安装了多个 Python，可用启动器指定版本，例如：
+# py -3.12 -m pip install -r requirements.txt
+
+streamlit run app.py
+```
+
+浏览器打开终端提示的地址（一般为 **http://localhost:8501**）。
+
+---
+
+## 运行单元测试
+
+```bash
+python -m pytest tests -q
+```
+
+---
+
+## 数据字段说明
+
+`signal_samples.csv` 主要列：
+
+- `Latitude` / `Longitude`：采样点坐标  
+- `CellID`：小区标识  
+- `Band`：频段（如 n28、n41、n78）  
+- `RSRP_dBm`：参考信号接收功率  
+- `SINR_dB`：信噪比  
+- `TerminalType`：终端类型（如 Smartphone、CPE、IoT）  
+- `Download_Mbps`：下行速率（用于三维柱高）
+
+---
+
+## Git 提交与赛题打卡（可选）
+
+若仓库为比赛用 Git 远程仓，完成度可按主办方要求打 Tag，例如：
+
+```bash
+git add .
+git commit -m "完成基础/进阶功能说明"
+git tag basic-done      # 基础关卡
+# git tag advanced-done # 进阶关卡
+git push origin main --tags
+```
+
+具体以当前届比赛 README 为准。
+
+---
+
+## 许可证与致谢
+
+数据与赛题背景由活动主办方提供；本看板实现为示例工程，可按队伍需要修改署名与说明。
